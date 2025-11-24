@@ -1,0 +1,264 @@
+/* ----------------------------- */
+/* GLOBAL */
+/* ----------------------------- */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: #111;
+    overflow-x: hidden;
+    padding-top: 70px; /* karena navbar fixed */
+}
+
+.dark body {
+    background: #0f0f0f;
+    color: #f0f0f0;
+}
+
+/* ----------------------------- */
+/* NAVBAR */
+/* ----------------------------- */
+
+.navbar {
+    width: 100%;
+    padding: 12px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f4f4f7; /* abu soft */
+    border-bottom: 1px solid #ddd;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.dark .navbar {
+    background: #1c1c1c;
+    border-bottom: 1px solid #333;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-logo {
+    width: 42px;
+}
+
+.nav-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.nav-right {
+    display: flex;
+    gap: 10px;
+    margin-right: 50px;
+}
+
+.nav-btn {
+    padding: 7px 16px;
+    border-radius: 7px;
+    background: #e7e7e7;
+    text-decoration: none;
+    color: #111;
+    font-weight: 500;
+}
+
+.nav-btn:hover {
+    background: #d5d5d5;
+}
+
+.nav-btn.register {
+    background: #2a5bd7;
+    color: white;
+}
+
+.nav-btn.register:hover {
+    background: #1f4ab6;
+}
+
+.dark .nav-btn {
+    background: #2f2f2f;
+    color: #fff;
+}
+.dark .nav-btn:hover {
+    background: #3a3a3a;
+}
+
+/* ----------------------------- */
+/* HERO */
+/* ----------------------------- */
+
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 80px 50px;
+}
+
+.hero-left {
+    width: 40%;
+}
+
+.hero-left h1 {
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.hero-left p {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #444;
+}
+
+.dark .hero-left p {
+    color: #ccc;
+}
+
+.hero-buttons {
+    margin-top: 30px;
+    display: flex;
+    gap: 20px;
+}
+
+.btn-primary {
+    padding: 12px 26px;
+    background: #2a5bd7;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.btn-primary:hover {
+    background: #1f4ab6;
+}
+
+.btn-outline {
+    padding: 12px 26px;
+    border: 2px solid #2a5bd7;
+    color: #2a5bd7;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+.btn-outline:hover {
+    background: #2a5bd7;
+    color: #fff;
+}
+
+/* RIGHT SIDE LOGO */
+.hero-right {
+    width: 50%;
+    text-align: right;
+}
+
+.hero-logo {
+    width: 60%;
+    max-width: 420px;
+}
+
+/* ----------------------------- */
+/* DECORATION CIRCLES */
+/* ----------------------------- */
+
+.circle-decoration {
+    position: absolute;
+    border-radius: 50%;
+    z-index: -1;
+    opacity: 0.25;
+}
+
+.circle-1 {
+    width: 420px;
+    height: 420px;
+    background: #87a7ff;
+    top: -120px;
+    right: -120px;
+}
+
+.circle-2 {
+    width: 280px;
+    height: 280px;
+    background: #aec6ff;
+    bottom: -100px;
+    left: -100px;
+}
+
+/* ----------------------------- */
+/* RESPONSIVE */
+/* ----------------------------- */
+
+@media (max-width: 992px) {
+
+    .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    .hero-left, .hero-right {
+        width: 100%;
+    }
+
+    .hero-right {
+        margin-top: 40px;
+        text-align: center;
+    }
+
+    .hero-logo {
+        width: 55%;
+    }
+}
+
+/* ---- PERBAIKAN NAVBAR & HERO DI HP ---- */
+@media (max-width: 576px) {
+
+    /* Navbar jadi 2 baris */
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 20px;
+        gap: 10px;
+    }
+
+    .nav-right {
+        margin-right: 0;
+        width: 100%;
+        justify-content: flex-start;
+        gap: 10px;
+    }
+
+    /* Hero center */
+    .hero {
+        padding: 20px 15px !important;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    .hero-left {
+        width: 100%;
+        text-align: center;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .hero-right {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .hero-logo {
+        width: 70%;
+    }
+}

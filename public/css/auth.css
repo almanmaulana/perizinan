@@ -1,0 +1,101 @@
+/* Layout wrapper */
+.auth-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f2f5fa;
+}
+
+/* Left */
+.auth-left {
+    width: 45%;
+    background: linear-gradient(135deg, #dce6f8, #b7c8e6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-left img {
+    width: 75%;
+    max-width: 360px;
+}
+
+/* Right */
+.auth-right {
+    width: 55%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+}
+
+/* Card */
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: white;
+    padding: 32px;
+    border-radius: 15px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.15);
+}
+
+/* Tabs inside card */
+.auth-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 25px;
+}
+
+.auth-tabs a {
+    font-size: 18px;
+    color: #64748b;
+    text-decoration: none;
+    padding-bottom: 6px;
+}
+
+.auth-tabs a.active {
+    color: #1e3a8a;
+    font-weight: 700;
+    border-bottom: 3px solid #1e3a8a;
+}
+
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Inputs */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #c0c9d6;
+    background: #f8fafc;
+}
+
+/* Button */
+.btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 17px;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+    .auth-container {
+        flex-direction: column;
+        padding: 20px;
+    }
+    .auth-left, .auth-right {
+        width: 100%;
+    }
+}
