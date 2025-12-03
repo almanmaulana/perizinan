@@ -2,125 +2,95 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Santri;
 use App\Models\Kelas;
-use App\Models\Izin;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Izin;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        // ===== ROLE KEAMANAN =====
+        // Wali santri diarahkan ke controller khusus
+        if ($user->role === 'wali_santri') {
+            return redirect()->route('dashboard.walisantri');
+        }
+
+        // === ROLE KEAMANAN ===
         if ($user->role === 'keamanan') {
+
             $totalSantri = Santri::count();
             $totalKelas = Kelas::count();
-            $totalWaliKelas = User::where('role','wali_kelas')->count();
-            $totalWaliSantri = User::where('role','wali_santri')->count();
+            $totalWaliKelas = User::where('role', 'wali_kelas')->count();
+            $totalWaliSantri = User::where('role', 'wali_santri')->count();
 
-            $izinLabels = ['Sakit','Kegiatan','Lainnya'];
-            $izinCounts = Izin::select('jenis_izin')
-                            ->selectRaw('count(*) as total')
-                            ->whereMonth('created_at', now()->month)
-                            ->groupBy('jenis_izin')
-                            ->pluck('total','jenis_izin')
-                            ->toArray();
-            $izinCounts = array_merge(array_fill_keys($izinLabels,0), $izinCounts);
+            $izinCounts = Izin::whereMonth('created_at', now()->month)
+                ->selectRaw('jenis_izin, COUNT(*) as total')
+                ->groupBy('jenis_izin')
+                ->pluck('total', 'jenis_izin')
+                ->toArray();
 
-            $totalDendaDibayar = Izin::where('status_lapor','sudah_lapor')
-                                ->where('status_denda','dibayar')
-                                ->sum('denda');
+            $totalDendaDibayar = Izin::where('status_lapor', 'sudah_lapor')
+                ->where('status_denda', 'dibayar')
+                ->sum('denda');
 
-            $totalDendaBelum = Izin::where('status_lapor','sudah_lapor')
-                                ->where('status_denda','belum_dibayar')
-                                ->sum('denda');
+            $totalDendaBelum = Izin::where('status_lapor', 'sudah_lapor')
+                ->where('status_denda', 'belum_dibayar')
+                ->sum('denda');
 
-            $latestIzin = Izin::with('santri.kelas')
-                            ->latest()
-                            ->take(5)
-                            ->get();
+            $latestIzin = Izin::latest()->take(5)->get();
 
-        // ===== ROLE WALI KELAS =====
-        } elseif ($user->role === 'wali_kelas') {
+            return view('dashboard', compact(
+                'user', 'totalSantri', 'totalKelas',
+                'totalWaliKelas', 'totalWaliSantri',
+                'izinCounts', 'latestIzin',
+                'totalDendaDibayar', 'totalDendaBelum'
+            ));
+        }
+
+        // === ROLE: WALI KELAS ===
+        elseif ($user->role === 'wali_kelas') {
+
             $kelasIds = Kelas::where('wali_kelas_id', $user->id)->pluck('id');
             $santriIds = Santri::whereIn('kelas_id', $kelasIds)->pluck('id');
 
             $totalSantri = $santriIds->count();
             $totalKelas = $kelasIds->count();
-            $totalWaliKelas = 1; // diri sendiri
+
             $totalWaliSantri = Santri::whereIn('kelas_id', $kelasIds)
-                              ->distinct('wali_santri_id')
-                              ->count('wali_santri_id');
+                ->distinct('wali_santri_id')
+                ->count('wali_santri_id');
 
-            $izinLabels = ['Sakit','Kegiatan','Lainnya'];
             $izinCounts = Izin::whereIn('santri_id', $santriIds)
-                            ->whereMonth('created_at', now()->month)
-                            ->select('jenis_izin')
-                            ->selectRaw('count(*) as total')
-                            ->groupBy('jenis_izin')
-                            ->pluck('total','jenis_izin')
-                            ->toArray();
-            $izinCounts = array_merge(array_fill_keys($izinLabels,0), $izinCounts);
-
-            $totalDendaDibayar = Izin::whereIn('santri_id', $santriIds)
-                                ->where('status_lapor','sudah_lapor')
-                                ->where('status_denda','dibayar')
-                                ->sum('denda');
-
-            $totalDendaBelum = Izin::whereIn('santri_id', $santriIds)
-                                ->where('status_lapor','sudah_lapor')
-                                ->where('status_denda','belum_dibayar')
-                                ->sum('denda');
+                ->whereMonth('created_at', now()->month)
+                ->selectRaw('jenis_izin, COUNT(*) as total')
+                ->groupBy('jenis_izin')
+                ->pluck('total', 'jenis_izin')
+                ->toArray();
 
             $latestIzin = Izin::with('santri.kelas')
-                            ->whereIn('santri_id', $santriIds)
-                            ->latest()
-                            ->take(5)
-                            ->get();
+                ->whereIn('santri_id', $santriIds)
+                ->latest()
+                ->take(5)
+                ->get();
 
-        // ===== ROLE WALI SANTRI =====
-        } elseif ($user->role === 'wali_santri') {
-            $santriIds = Santri::where('wali_santri_id', $user->id)->pluck('id');
-
-            $totalSantri = $santriIds->count();
-            $totalKelas = 0;
-            $totalWaliKelas = 0;
-            $totalWaliSantri = 1; // diri sendiri
-
-            $izinLabels = ['Sakit','Kegiatan','Lainnya'];
-            $izinCounts = Izin::whereIn('santri_id', $santriIds)
-                            ->whereMonth('created_at', now()->month)
-                            ->select('jenis_izin')
-                            ->selectRaw('count(*) as total')
-                            ->groupBy('jenis_izin')
-                            ->pluck('total','jenis_izin')
-                            ->toArray();
-            $izinCounts = array_merge(array_fill_keys($izinLabels,0), $izinCounts);
-
-            $totalDendaDibayar = Izin::whereIn('santri_id', $santriIds)
-                                ->where('status_lapor','sudah_lapor')
-                                ->where('status_denda','dibayar')
-                                ->sum('denda');
-
-            $totalDendaBelum = Izin::whereIn('santri_id', $santriIds)
-                                ->where('status_lapor','sudah_lapor')
-                                ->where('status_denda','belum_dibayar')
-                                ->sum('denda');
-
-            $latestIzin = Izin::with('santri.kelas')
-                            ->whereIn('santri_id', $santriIds)
-                            ->latest()
-                            ->take(5)
-                            ->get();
+            return view('dashboard', [
+                'user' => $user,
+                'totalSantri' => $totalSantri,
+                'totalKelas' => $totalKelas,
+                'totalWaliKelas' => 1,
+                'totalWaliSantri' => $totalWaliSantri,
+                'izinCounts' => $izinCounts,
+                'latestIzin' => $latestIzin,
+                'totalDendaDibayar' => 0,
+                'totalDendaBelum' => 0,
+                'izinLabels' => ['Sakit','Kegiatan','Lainnya'],
+            ]);
         }
 
-        return view('dashboard', compact(
-            'totalSantri','totalKelas','totalWaliKelas','totalWaliSantri',
-            'izinLabels','izinCounts','totalDendaDibayar','totalDendaBelum','user','latestIzin'
-        ));
-    }
-}
+    } 
+
+} 

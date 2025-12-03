@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-100 leading-tight">
-            Laporan Izin Santri
+            <i class="fa-solid fa-file-lines"></i> Laporan Izin Santri
         </h2>
     </x-slot>
 
@@ -66,6 +66,13 @@
                     <option value="bulan" {{ request('periode')=='bulan'?'selected':'' }}>Bulan ini</option>
                     <option value="tahun" {{ request('periode')=='tahun'?'selected':'' }}>Tahun ini</option>
                 </select>
+
+                <select name="status_denda" class="border rounded px-2 py-1 text-sm dark:bg-gray-700 dark:text-gray-100">
+                    <option value="">Semua Denda</option>
+                    <option value="dibayar" {{ request('status_denda')=='dibayar'?'selected':'' }}>Sudah Dibayar</option>
+                    <option value="belum_dibayar" {{ request('status_denda')=='belum_dibayar'?'selected':'' }}>Belum Dibayar</option>
+                </select>
+
             </form>
 
             {{-- Tabel --}}

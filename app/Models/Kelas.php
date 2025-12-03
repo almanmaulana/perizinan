@@ -32,4 +32,18 @@ class Kelas extends Model
         return $this->hasMany(Santri::class, 'kelas_id');
     }
 
+     public function getFormattedNameAttribute()
+    {
+        switch($this->jenjang) {
+            case 'SMK':
+                return "{$this->tingkat} {$this->nama_kelas} {$this->jurusan}";
+            case 'SMA':
+                return "{$this->tingkat} {$this->jurusan} {$this->nama_kelas}";
+            case 'SMP':
+                return "{$this->tingkat} {$this->nama_kelas}";
+            default:
+                return $this->nama_kelas;
+        }
+    }
+
 }

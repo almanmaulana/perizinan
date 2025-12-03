@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
 
 class SantriController extends Controller
 {
@@ -21,9 +22,10 @@ class SantriController extends Controller
 
         // 🔐 Filter otomatis untuk wali kelas
         if ($user->role === 'wali_kelas') {
-            $kelasWali = Kelas::where('wali_kelas_id', $user->id)->first();
-            $query->where('kelas_id', $kelasWali->id ?? null);
+            $kelasWaliIds = Kelas::where('wali_kelas_id', $user->id)->pluck('id');
+            $query->whereIn('kelas_id', $kelasWaliIds);
         }
+
 
         // 🔍 Pencarian
         if ($request->filled('search')) {
@@ -43,9 +45,9 @@ class SantriController extends Controller
         $query->orderBy('nama', $sortOrder);
 
         // 🔢 Jumlah data per halaman (default 10, tapi bisa diubah)
-        $perPage = (int) $request->get('per_page', 1); 
-        if (!in_array($perPage, [1, 10, 20, 30, 40, 50, 75, 100])) {
-            $perPage = 1;
+        $perPage = (int) $request->get('per_page', 10); 
+        if (!in_array($perPage, [10, 20, 30, 40, 50, 75, 100])) {
+            $perPage = 10;
         }
 
         // 📄 Pagination
@@ -180,28 +182,27 @@ class SantriController extends Controller
         return redirect()->route('santri.index')->with('success','Santri berhasil dihapus ❌');
     }
 
-    public function import(Request $request)
-    {
-        $request->validate(['file' => 'required|mimes:xlsx,xls']);
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls'
+    ]);
 
-        $import = new SantriImport();
-        Excel::import($import, $request->file('file'));
-        $failures = $import->failures();
+    $import = new \App\Imports\SantriImport();
 
-        if ($failures->isNotEmpty()) {
-            $messages = [];
-            foreach ($failures as $failure) {
-                foreach ($failure->errors() as $error) {
-                    $messages[] = "Baris {$failure->row()}: {$error}";
-                }
-            }
-            return redirect()->route('santri.index')
-                ->with('error', '⚠️ Beberapa data gagal diimport.')
-                ->with('import_errors', $messages);
-        }
+    Excel::import($import, $request->file('file'));
 
-        return redirect()->route('santri.index')->with('success', '✅ Semua data santri berhasil diimport!');
+    if (!empty($import->errors)) {
+        // Kirim error ke view
+        return redirect()->route('santri.index')
+            ->with('import_errors', collect($import->errors)->map(fn($e) => "Baris {$e['row']}: {$e['error']}")->toArray());
     }
+
+    return redirect()->route('santri.index')
+        ->with('success', '✅ Semua data berhasil diimport!');
+}
+
+
 
     public function show($id)
     {
@@ -258,28 +259,28 @@ class SantriController extends Controller
         return redirect()->route('santri.index')->with('success', count($ids) . ' santri berhasil dipindahkan ke kelas baru 🎓');
     }
 
-    public function cekKodeKeluarga(Request $request)
-{
-    $kode = $request->get('kode_keluarga');
+        public function cekKodeKeluarga(Request $request)
+    {
+        $kode = $request->get('kode_keluarga');
 
-    if (!$kode) {
+        if (!$kode) {
+            return response()->json(['exists' => false]);
+        }
+
+        // Cek apakah kode keluarga sudah dipakai oleh santri lain
+        $santri = \App\Models\Santri::with('waliSantri')
+            ->where('kode_keluarga', $kode)
+            ->first();
+
+        if ($santri) {
+            return response()->json([
+                'exists' => true,
+                'santri_nama' => $santri->nama,
+                'wali_nama' => $santri->waliSantri ? $santri->waliSantri->nama : 'Belum ada wali',
+            ]);
+        }
+
         return response()->json(['exists' => false]);
     }
-
-    // Cek apakah kode keluarga sudah dipakai oleh santri lain
-    $santri = \App\Models\Santri::with('waliSantri')
-        ->where('kode_keluarga', $kode)
-        ->first();
-
-    if ($santri) {
-        return response()->json([
-            'exists' => true,
-            'santri_nama' => $santri->nama,
-            'wali_nama' => $santri->waliSantri ? $santri->waliSantri->nama : 'Belum ada wali',
-        ]);
-    }
-
-    return response()->json(['exists' => false]);
-}
 
 }

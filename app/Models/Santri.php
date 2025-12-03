@@ -10,18 +10,16 @@ use function Laravel\Prompts\table;
 class Santri extends Model
 {
     use HasFactory;
-
     protected $fillable = [
-    'nis',
-    'nama',
-    'foto',
-    'jenis_kelamin',
-    'jenjang',
-    'kelas_id',
-    'wali_santri_id',
-    'kode_keluarga',
-    'alamat'
-];
+        'nis',
+        'nama',
+        'foto',
+        'jenis_kelamin',
+        'kelas_id',
+        'wali_santri_id',
+        'kode_keluarga',
+        'alamat'
+    ];
 
     protected $table = 'santris';
 

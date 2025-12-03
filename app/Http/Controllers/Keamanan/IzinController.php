@@ -138,6 +138,21 @@ class IzinController extends Controller
     return view('izin.keamanan.trash', compact('izinList'));
 }
 
+    public function bulkSoftDelete(Request $request)
+    {
+        $ids = $request->selected ?? [];
+
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada data yang dipilih.');
+        }
+
+        Izin::whereIn('id', $ids)->delete();
+
+        return back()->with('success', 'Berhasil menghapus beberapa data.');
+    }
+
+
+
 
 
 }

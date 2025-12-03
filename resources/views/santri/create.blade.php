@@ -186,7 +186,7 @@
                 return;
             }
             try {
-                const res = await fetch(`{{ route('santri.cekKodeKeluarga') }}?kode_keluarga=${kode}`);
+                const res = await fetch(`{{ route('cek.kodekeluarga') }}?kode_keluarga=${kode}`);
                 const data = await res.json();
                 if (data.exists) {
                     alertDiv.innerHTML = `

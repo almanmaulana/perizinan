@@ -8,20 +8,38 @@ use App\Http\Controllers\SantriController;
 use App\Http\Controllers\Keamanan\LaporanIzinController;
 use App\Http\Controllers\AuthWaliSantriController;
 use App\Http\Controllers\DashboardController;
-
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\DashboardWaliSantriController;
 
 // ===============================
 // 🔹 HALAMAN UTAMA
 // ===============================
 Route::get('/', fn() => view('welcome'));
+Route::get('/', function () {
+    return view('welcome'); // pastikan ada file resources/views/welcome.blade.php
+})->name('welcome');
+
+// ===============================
+// 🔹 CEK KODE KELUARGA (AJAX) – dipakai di register
+// ===============================
+Route::get('/cek-kode-keluarga', function (Illuminate\Http\Request $request) {
+    $kode = $request->kode;
+
+    $santriAda   = \App\Models\Santri::where('kode_keluarga', $kode)->exists();
+    $kodeDipakai = \App\Models\User::where('kode_keluarga', $kode)->exists();
+
+    return response()->json([
+        'santriAda'   => $santriAda,
+        'kodeDipakai' => $kodeDipakai
+    ]);
+})->name('cek.kodekeluarga');
+
 
 // ===============================
 // 🔹 REGISTER WALI SANTRI (Custom)
 // ===============================
-// Pakai register.blade.php yang sudah kamu ubah
 Route::get('/register-wali-santri', [AuthWaliSantriController::class, 'showRegisterForm'])
     ->name('register.walisantri');
+
 Route::post('/register-wali-santri', [AuthWaliSantriController::class, 'register'])
     ->name('register.walisantri.store');
 
@@ -29,7 +47,9 @@ Route::post('/register-wali-santri', [AuthWaliSantriController::class, 'register
 // ===============================
 // 🔹 DASHBOARD
 // ===============================
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+Route::get('/dashboard/wali-santri',[DashboardWaliSantriController::class, 'index'])->name('dashboard.walisantri')->middleware('auth');
+
 
 
 // ===============================
@@ -37,15 +57,14 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 // ===============================
 Route::middleware(['auth'])->group(function () {
 
-        // ===============================
-    // 🔹 HALAMAN PROFIL USER LOGIN
     // ===============================
-    Route::middleware(['auth'])->group(function () {
-        Route::get('/profile', [UserController::class, 'profile'])->name('profile');
-        Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
-        Route::post('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
-        Route::post('/profile/photo', [UserController::class, 'updatePhoto'])->name('profile.photo');
-    });
+    // 🔹 HALAMAN PROFIL
+    // ===============================
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
+    Route::post('/profile/update', [UserController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/password', [UserController::class, 'updatePassword'])->name('profile.password');
+    Route::post('/profile/photo', [UserController::class, 'updatePhoto'])->name('profile.photo');
+
 
     // =======================================
     // ROLE: KEAMANAN & WALI KELAS
@@ -57,7 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/kelas/by-jenjang/{jenjang}', [KelasController::class, 'byJenjang'])
             ->name('kelas.byJenjang');
 
-        // Wali Santri (autocomplete)
+        // Wali Santri autocomplete
         Route::get('/wali-santri/search', [UserController::class, 'searchWaliSantri'])
             ->name('waliSantri.search');
 
@@ -67,20 +86,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/santri/bulk-move', [SantriController::class, 'bulkMove'])->name('santri.bulkMove');
     });
 
+
     // =======================================
     // ROLE: KEAMANAN
     // =======================================
     Route::middleware(['role:keamanan'])->group(function () {
+
+        // User Management
         Route::resource('users', UserController::class);
         Route::post('users/import', [UserController::class, 'import'])->name('users.import');
         Route::post('/users/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulkDelete');
 
-        Route::delete('/santri/bulk-delete', [SantriController::class, 'bulkDelete'])->name('santri.bulkDelete');
+        // Santri delete
+        Route::post('/santri/bulk-delete', [SantriController::class, 'bulkDelete'])->name('santri.bulkDelete');
 
-        Route::get('/cek-kode-keluarga', [App\Http\Controllers\SantriController::class, 'cekKodeKeluarga'])->name('santri.cekKodeKeluarga');
-
-        // Laporan Izin
-        Route::get('keamanan/laporan', [LaporanIzinController::class, 'index'])->name('laporan.index');
+        // Laporan
+        Route::get('/keamanan/laporan', [LaporanIzinController::class, 'index'])->name('laporan.index');
         Route::get('/laporan/export-pdf', [LaporanIzinController::class, 'exportPdf'])->name('laporan.exportPdf');
 
         // Izin Keamanan
@@ -93,27 +114,38 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/soft-delete/{izin}', [\App\Http\Controllers\Keamanan\IzinController::class, 'softDelete'])->name('softDelete');
             Route::post('/restore/{id}', [\App\Http\Controllers\Keamanan\IzinController::class, 'restore'])->name('restore');
             Route::delete('/force-delete/{id}', [\App\Http\Controllers\Keamanan\IzinController::class, 'forceDelete'])->name('forceDelete');
+            Route::delete('/bulk-soft-delete', [\App\Http\Controllers\Keamanan\IzinController::class, 'bulkSoftDelete'])->name('bulkSoftDelete');
             Route::get('/trash', [\App\Http\Controllers\Keamanan\IzinController::class, 'trash'])->name('trash');
-
         });
     });
+
 
     // =======================================
     // ROLE: WALI KELAS
     // =======================================
-    Route::middleware(['role:wali_kelas'])->prefix('izin/walikelas')->name('izin.walikelas.')->group(function () {
+    Route::middleware(['role:wali_kelas'])
+        ->prefix('izin/walikelas')
+        ->name('izin.walikelas.')
+        ->group(function () {
+
         Route::get('/', [\App\Http\Controllers\WaliKelas\IzinController::class, 'index'])->name('index');
         Route::post('/approve/{izin}', [\App\Http\Controllers\WaliKelas\IzinController::class, 'approve'])->name('approve');
         Route::post('/reject/{izin}', [\App\Http\Controllers\WaliKelas\IzinController::class, 'reject'])->name('reject');
     });
 
+
     // =======================================
     // ROLE: WALI SANTRI
     // =======================================
-    Route::middleware(['role:wali_santri'])->prefix('izin/walisantri')->name('izin.walisantri.')->group(function () {
+    Route::middleware(['role:wali_santri'])
+        ->prefix('izin/walisantri')
+        ->name('izin.walisantri.')
+        ->group(function () {
+
         Route::get('/', [\App\Http\Controllers\WaliSantri\IzinController::class, 'index'])->name('index');
         Route::post('/store', [\App\Http\Controllers\WaliSantri\IzinController::class, 'store'])->name('store');
     });
+
 
     // =======================================
     // LOGOUT
@@ -126,7 +158,8 @@ Route::middleware(['auth'])->group(function () {
     })->name('logout');
 });
 
+
 // ===============================
-// 🔹 ROUTE AUTH DEFAULT (BREEZE / FORTIFY)
+// 🔹 ROUTE AUTH DEFAULT
 // ===============================
 require __DIR__ . '/auth.php';

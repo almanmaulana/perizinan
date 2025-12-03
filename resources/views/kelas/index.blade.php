@@ -77,51 +77,50 @@
         <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg border border-gray-300 dark:border-gray-700 overflow-x-auto">
 
             <table class="min-w-full text-sm text-left text-gray-600 dark:text-gray-200">
-                <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase">
-                    <tr>
-                        <th class="px-4 py-3">ID</th>
-                        <th class="px-4 py-3">Nama Kelas</th>
-                        <th class="px-4 py-3">Jenjang</th>
-                        <th class="px-4 py-3">Jurusan</th>
-                        <th class="px-4 py-3">Wali Kelas</th>
-                        <th class="px-4 py-3 text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($kelas as $k)
-                        <tr class="border-b border-gray-300 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-gray-700/50">
-                            <td class="px-4 py-3">{{ $k->id }}</td>
-                            <td class="px-4 py-3 font-medium">{{ $k->formatted_name ?? $k->nama_kelas }}</td>
-                            <td class="px-4 py-3">{{ $k->jenjang }}</td>
-                            <td class="px-4 py-3">{{ $k->jurusan ?? '-' }}</td>
-                            <td class="px-4 py-3">{{ $k->waliKelas->nama ?? '-' }}</td>
-                            <td class="px-4 py-3 text-center">
-                                <div class="flex justify-center flex-wrap gap-2">
-                                    <a href="{{ route('kelas.show', $k->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md shadow transition">
-                                        <i class="fa-solid fa-eye"></i>
+            <thead class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 uppercase">
+                <tr>
+                    <th class="px-4 py-3">No</th>
+                    <th class="px-4 py-3">Kelas</th>
+                    <th class="px-4 py-3">Jenjang</th>
+                    <th class="px-4 py-3">Wali Kelas</th>
+                    <th class="px-4 py-3 text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse ($kelas as $index => $k)
+                    <tr class="border-b border-gray-300 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-gray-700/50">
+                        <td class="px-4 py-3">{{ $loop->iteration + ($kelas->currentPage()-1)*$kelas->perPage() }}</td>
+                        <td class="px-4 py-3 font-medium">{{ $k->formatted_name }}</td>
+                        <td class="px-4 py-3">{{ $k->jenjang }}</td>
+                        <td class="px-4 py-3">{{ $k->waliKelas->nama ?? '-' }}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex justify-center flex-wrap gap-2">
+                                <a href="{{ route('kelas.show', $k->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md shadow transition">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                @if(Auth::user()->role === 'keamanan')
+                                    <a href="{{ route('kelas.edit', $k->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md shadow transition">
+                                        <i class="fa-solid fa-pen"></i>
                                     </a>
-                                    @if(Auth::user()->role === 'keamanan')
-                                        <a href="{{ route('kelas.edit', $k->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md shadow transition">
-                                            <i class="fa-solid fa-pen"></i>
-                                        </a>
-                                        <form action="{{ route('kelas.destroy', $k->id) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Yakin mau hapus kelas ini?')"
-                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md shadow transition">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-gray-500 dark:text-gray-400">Belum ada data kelas.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
+                                    <form action="{{ route('kelas.destroy', $k->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" onclick="return confirm('Yakin mau hapus kelas ini?')"
+                                            class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md shadow transition">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-gray-500 dark:text-gray-400">Belum ada data kelas.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+
             </table>
 
             {{-- 📄 Pagination di dalam card --}}

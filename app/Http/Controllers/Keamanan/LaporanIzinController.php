@@ -54,6 +54,21 @@ class LaporanIzinController extends Controller
             }
         }
 
+        // Filter status denda
+        if ($request->filled('status_denda')) {
+            switch ($request->status_denda) {
+                case 'dibayar':
+                    $query->where('status_lapor','sudah_lapor')
+                        ->where('status_denda','dibayar');
+                    break;
+                case 'belum_dibayar':
+                    $query->where('status_lapor','sudah_lapor')
+                        ->where('status_denda','belum_dibayar');
+                    break;
+            }
+        }
+
+
         // Clone query untuk total
         $totalQuery = clone $query;
 

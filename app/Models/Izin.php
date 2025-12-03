@@ -35,7 +35,7 @@ class Izin extends Model
         'updated_at' => 'datetime',
     ];
 
-    public static $tanggalSimulasi = "2025-11-28";
+    public static $tanggalSimulasi = "2025-11-31";
 
     public static function today()
     {
